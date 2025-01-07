@@ -1,16 +1,33 @@
-// src/app/_components/MicButton.js
-import { useState, useRef } from 'react'
+// src/app/_components/LottieButton.js
+'use client'
 
-export default function MicButton({ onTextReceived }) {
+import { useState, useRef, useEffect } from 'react'
+import lottie from 'lottie-web'
+import './LottieButton.css' // CSS 파일 import
+
+export default function LottieButton({ onTextReceived }) {
 	const [recording, setRecording] = useState(false)
 	const audioContextRef = useRef(null)
 	const processorRef = useRef(null)
 	const sourceRef = useRef(null)
-
-	// 임시 버퍼
 	const bufferChunksRef = useRef([])
 	const chunkCountRef = useRef(0)
 	const CHUNK_THRESHOLD = 4
+	const lottieContainer = useRef(null)
+
+	useEffect(() => {
+		const animation = lottie.loadAnimation({
+			container: lottieContainer.current,
+			renderer: 'svg',
+			loop: true,
+			autoplay: true,
+			animationData: require('./lottie.json'),
+		})
+
+		return () => {
+			animation.destroy()
+		}
+	}, [])
 
 	const startRecording = async () => {
 		if (!audioContextRef.current) {
@@ -18,28 +35,20 @@ export default function MicButton({ onTextReceived }) {
 		}
 		const audioContext = audioContextRef.current
 
-		// 마이크 스트림
 		const stream = await navigator.mediaDevices.getUserMedia({
 			audio: true,
 		})
-
 		sourceRef.current = audioContext.createMediaStreamSource(stream)
-
-		// ScriptProcessorNode 설정 (버퍼 사이즈, 입력 채널 수, 출력 채널 수)
 		processorRef.current = audioContext.createScriptProcessor(8192, 1, 1)
 
-		// onaudioprocess에서 청크 누적 후 일정 횟수마다 전송
 		processorRef.current.onaudioprocess = async (event) => {
 			const inputBuffer = event.inputBuffer.getChannelData(0)
 			const int16Buffer = float32ToInt16(inputBuffer)
 
-			// 임시 배열에 쌓기
 			bufferChunksRef.current.push(new Int16Array(int16Buffer))
 			chunkCountRef.current++
 
-			// 일정 횟수(CHUNK_THRESHOLD)마다 한 번씩 전송
 			if (chunkCountRef.current >= CHUNK_THRESHOLD) {
-				// 여러 청크를 합쳐 Int16Array
 				const merged = mergeChunks(bufferChunksRef.current)
 				bufferChunksRef.current = []
 				chunkCountRef.current = 0
@@ -59,7 +68,6 @@ export default function MicButton({ onTextReceived }) {
 		sourceRef.current.connect(processorRef.current)
 		processorRef.current.connect(audioContext.destination)
 
-		// SSE
 		const eventSource = new EventSource('/api/speech-to-text')
 		eventSource.onmessage = (event) => {
 			const data = event.data.trim()
@@ -132,11 +140,10 @@ export default function MicButton({ onTextReceived }) {
 	}
 
 	return (
-		<button
+		<div
+			ref={lottieContainer}
 			onClick={recording ? stopRecording : startRecording}
-			className="p-4 bg-blue-500 text-white rounded"
-		>
-			{recording ? 'Stop Recording' : 'Start Recording'}
-		</button>
+			className={`lottie-button ${recording ? 'fade-out' : 'fade-in'}`}
+		></div>
 	)
 }

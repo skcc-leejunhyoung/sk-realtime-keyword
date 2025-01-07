@@ -1,24 +1,20 @@
-// src/app/_components/ContentScanner.js
 import { useState, useEffect } from 'react'
 
-export default function ContentScanner({ content, highlightWords }) {
+export default function ContentScanner({ content }) {
 	const [scannedContent, setScannedContent] = useState(content)
 
 	useEffect(() => {
-		let highlighted = content
-		highlightWords.forEach((word) => {
-			highlighted = highlighted.replace(
-				new RegExp(`(${word})`, 'gi'),
-				'<span class="bg-yellow-500">$1</span>',
-			)
-		})
-		setScannedContent(highlighted)
-	}, [content, highlightWords])
+		let processedContent = content
+
+		// "vwb"를 "VWBE"로 치환
+		processedContent = processedContent.replace(/\bvwb\b/gi, 'VWBE')
+
+		setScannedContent(processedContent)
+	}, [content])
 
 	return (
-		<div
-			className="p-4 rounded-lg bg-gray-800 text-white leading-relaxed"
-			dangerouslySetInnerHTML={{ __html: scannedContent }}
-		></div>
+		<div className="p-4 rounded-lg bg-gray-800 text-white leading-relaxed">
+			{scannedContent}
+		</div>
 	)
 }

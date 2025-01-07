@@ -1,0 +1,17 @@
+.lottie-button {
+	width: 150px;
+	height: 150px;
+	cursor: pointer;
+	transition: transform 0.6s ease-in-out, opacity 0.6s;
+	transform-origin: center;
+}
+
+.fade-out {
+	transform: scale(0.1);
+	opacity: 0;
+}
+
+.fade-in {
+	transform: scale(1);
+	opacity: 1;
+}
