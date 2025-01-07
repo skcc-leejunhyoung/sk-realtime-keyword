@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import lottie from 'lottie-web'
-import './LottieButton.css' // CSS 파일 import
+import './LottieButton.css'
 
 export default function LottieButton({ onTextReceived }) {
 	const [recording, setRecording] = useState(false)
@@ -16,16 +16,19 @@ export default function LottieButton({ onTextReceived }) {
 	const lottieContainer = useRef(null)
 
 	useEffect(() => {
-		const animation = lottie.loadAnimation({
-			container: lottieContainer.current,
-			renderer: 'svg',
-			loop: true,
-			autoplay: true,
-			animationData: require('./lottie.json'),
-		})
+		if (typeof window !== 'undefined') {
+			// 클라이언트 사이드에서만 애니메이션 로드
+			const animation = lottie.loadAnimation({
+				container: lottieContainer.current,
+				renderer: 'svg',
+				loop: true,
+				autoplay: true,
+				animationData: require('./lottie.json'),
+			})
 
-		return () => {
-			animation.destroy()
+			return () => {
+				animation.destroy()
+			}
 		}
 	}, [])
 
